@@ -68,6 +68,11 @@ public:
              available to code and to a host computer over USB.
              IMPORTANT: this function should always be called BEFORE
              Serial.begin().
+    @param   rw   OPTIONAL  If true (default), filesystem is read/write
+                            capable. If false, filesystem is read-only.
+                            This may be needed in special cases such as with
+                            the PicoDVI library, which can't walk and chew
+                            that much gum.
     @param   cs   OPTIONAL  SPI flash chip-select pin. This should ONLY be
                             used on "Haxpress" boards (QT Py or Trinket M0
                             with flash chip retrofitted). For most boards,
@@ -81,7 +86,7 @@ public:
                          NULL on error (uninitialized CIRCUITPY drive, or
                          invalid cs/spi combo)..
   */
-  static FatVolume *begin(int cs = -1, void *spi = NULL);
+  static FatVolume *begin(bool rw = true, int cs = -1, void *spi = NULL);
 
   /*!
     @brief   Checks if USB-connected host computer has made any changes
