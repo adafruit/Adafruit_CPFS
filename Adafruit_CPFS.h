@@ -68,11 +68,6 @@ public:
              available to code and to a host computer over USB.
              IMPORTANT: this function should always be called BEFORE
              Serial.begin().
-    @param   rw   OPTIONAL  If true (default), filesystem is read/write
-                            capable. If false, filesystem is read-only.
-                            This may be needed in special cases such as with
-                            the PicoDVI library, which can't walk and chew
-                            that much gum.
     @param   cs   OPTIONAL  SPI flash chip-select pin. This should ONLY be
                             used on "Haxpress" boards (QT Py or Trinket M0
                             with flash chip retrofitted). For most boards,
@@ -81,12 +76,18 @@ public:
     @param   spi  OPTIONAL  Pointer to SPI peripheral interfaced with flash
                             chip. Again, only for a couple of Haxpress M0
                             boards.
+    @param   idle OPTIONAL  Relevant to RP2040 devices only. Selects whether
+                            second core should be paused when writing/erasing
+                            flash. Default is true, and should ONLY be changed
+                            in super esoteric cases that require special
+                            linker setup. Failure to handle this correctly
+                            will cause crash and flash corruption.
     @return  FatVolume*  On success, a non-NULL pointer to a FatVolume
                          object, where files can then be opened and accessed.
                          NULL on error (uninitialized CIRCUITPY drive, or
                          invalid cs/spi combo)..
   */
-  static FatVolume *begin(bool rw = true, int cs = -1, void *spi = NULL);
+  static FatVolume *begin(int cs = -1, void *spi = NULL, bool idle = true);
 
   /*!
     @brief   Checks if USB-connected host computer has made any changes
