@@ -51,7 +51,7 @@
 #if defined(ARDUINO_ARCH_ESP32)
 static Adafruit_FlashTransport_ESP32 _transport;
 #elif defined(ARDUINO_ARCH_RP2040)
-static Adafruit_FlashTransport_RP2040_CPY _transport;
+static Adafruit_FlashTransport_RP2040_CPY *_transport;
 #elif defined(EXTERNAL_FLASH_USE_QSPI)
 static Adafruit_FlashTransport_QSPI _transport;
 #elif defined(EXTERNAL_FLASH_USE_CS) && defined(EXTERNAL_FLASH_USE_SPI)
@@ -66,11 +66,11 @@ static Adafruit_FlashTransport_SPI _transport(EXTERNAL_FLASH_USE_CS,
 // members are pointers, initialized at run-time depending on arguments
 // passed (or not) to the begin() function.
 #define HAXPRESS
-static Adafruit_FlashTransport_SPI *_transport;
-static void *_flash;
+static Adafruit_FlashTransport_SPI *_transport; // Unused if internal
+static void *_flash;                            // Is cast internal/SPI as needed in callbacks
 #endif
 #if !defined HAXPRESS
-static Adafruit_SPIFlash _flash(&_transport);
+static Adafruit_SPIFlash *_flash;
 #endif
 
 static Adafruit_USBD_MSC _usb_msc;
@@ -131,23 +131,23 @@ static void msc_flush_cb_spi(void) {
 // Flash type is known at compile time. Simple callbacks.
 
 static int32_t msc_read_cb(uint32_t lba, void *buffer, uint32_t bufsize) {
-  return _flash.readBlocks(lba, (uint8_t *)buffer, bufsize / 512) ? bufsize
-                                                                  : -1;
+  return _flash->readBlocks(lba, (uint8_t *)buffer, bufsize / 512) ? bufsize
+                                                                   : -1;
 }
 
 static int32_t msc_write_cb(uint32_t lba, uint8_t *buffer, uint32_t bufsize) {
   _changed = 1;
-  return _flash.writeBlocks(lba, buffer, bufsize / 512) ? bufsize : -1;
+  return _flash->writeBlocks(lba, buffer, bufsize / 512) ? bufsize : -1;
 }
 
 static void msc_flush_cb(void) {
-  _flash.syncBlocks();
+  _flash->syncBlocks();
   _fatfs.cacheClear();
 }
 
 #endif // end !HAXPRESS
 
-FatVolume *Adafruit_CPFS::begin(int cs, void *spi) {
+FatVolume *Adafruit_CPFS::begin(int cs, void *spi, bool idle) {
 
   if (_started)
     return &_fatfs; // Don't re-init if already running
@@ -188,15 +188,25 @@ FatVolume *Adafruit_CPFS::begin(int cs, void *spi) {
 
 #else
 
-  _flash.begin();
-  _usb_msc.setID("Adafruit", "Onboard Flash", "1.0");
-  _usb_msc.setReadWriteCallback(msc_read_cb, msc_write_cb, msc_flush_cb);
-  _usb_msc.setCapacity(_flash.size() / 512, 512);
-  _usb_msc.setUnitReady(true);
-  _usb_msc.begin();
+#if defined(ARDUINO_ARCH_RP2040)
+  if ((_transport = new Adafruit_FlashTransport_RP2040_CPY(idle))) {
+    if ((_flash = new Adafruit_SPIFlash(_transport))) {
+#else
+  { // _transport is declared globally, no test needed, pass address-of
+    if ((_flash = new Adafruit_SPIFlash(&_transport))) {
+#endif
 
-  if (_fatfs.begin(&_flash))
-    return &_fatfs;
+      _flash->begin();
+      _usb_msc.setID("Adafruit", "Onboard Flash", "1.0");
+      _usb_msc.setReadWriteCallback(msc_read_cb, msc_write_cb, msc_flush_cb);
+      _usb_msc.setCapacity(_flash->size() / 512, 512);
+      _usb_msc.setUnitReady(true);
+      _usb_msc.begin();
+
+      if (_fatfs.begin(_flash))
+        return &_fatfs;
+    } // end if new flash
+  }   // end if new transport
 
 #endif // end HAXPRESS
 

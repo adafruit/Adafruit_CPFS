@@ -76,12 +76,18 @@ public:
     @param   spi  OPTIONAL  Pointer to SPI peripheral interfaced with flash
                             chip. Again, only for a couple of Haxpress M0
                             boards.
+    @param   idle OPTIONAL  Relevant to RP2040 devices only. Selects whether
+                            second core should be paused when writing/erasing
+                            flash. Default is true, and should ONLY be changed
+                            in super esoteric cases that require special
+                            linker setup. Failure to handle this correctly
+                            will cause crash and flash corruption.
     @return  FatVolume*  On success, a non-NULL pointer to a FatVolume
                          object, where files can then be opened and accessed.
                          NULL on error (uninitialized CIRCUITPY drive, or
                          invalid cs/spi combo)..
   */
-  static FatVolume *begin(int cs = -1, void *spi = NULL);
+  static FatVolume *begin(int cs = -1, void *spi = NULL, bool idle = true);
 
   /*!
     @brief   Checks if USB-connected host computer has made any changes
