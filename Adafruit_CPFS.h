@@ -68,6 +68,10 @@ public:
              available to code and to a host computer over USB.
              IMPORTANT: this function should always be called BEFORE
              Serial.begin().
+    @param   msc  OPTIONAL  Enable mass storage connection to host computer
+                            over USB (if connected at boot time). Default is
+                            true. If set false, flash filesystem can be read
+                            by user code, but is not accessible on host.
     @param   cs   OPTIONAL  SPI flash chip-select pin. This should ONLY be
                             used on "Haxpress" boards (QT Py or Trinket M0
                             with flash chip retrofitted). For most boards,
@@ -87,7 +91,8 @@ public:
                          NULL on error (uninitialized CIRCUITPY drive, or
                          invalid cs/spi combo)..
   */
-  static FatVolume *begin(int cs = -1, void *spi = NULL, bool idle = true);
+  static FatVolume *begin(bool msc = true, int cs = -1, void *spi = NULL,
+                          bool idle = true);
 
   /*!
     @brief   Checks if USB-connected host computer has made any changes

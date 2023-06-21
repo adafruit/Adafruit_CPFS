@@ -23,9 +23,12 @@ FatVolume *fs = NULL; // CIRCUITPY flash filesystem, as a FAT pointer
 void setup(void) {
   // Start the CIRCUITPY flash filesystem FIRST. Very important!
   fs = Adafruit_CPFS::begin();
+  // An optional initial true/false flag passed to begin() selects whether
+  // the flash filesystem is presented to a USB-attached host computer (true),
+  // or accessible only to code on the microcontroller (false).
   // For "Haxpress" boards (small M0 boards retrofitted with SPI flash),
-  // a chip-select pin and/or SPI instance can be passed to begin():
-  // fs = Adafruit_CPFS::begin(SS1, &SPI1); // QT Py M0 Haxpress
+  // a chip-select pin and/or SPI instance can follow like so:
+  // fs = Adafruit_CPFS::begin(true, SS1, &SPI1); // QT Py M0 Haxpress
 
   // Start Serial AFTER Adafruit_CPFS, or CIRCUITPY won't show on computer.
   Serial.begin(115200);

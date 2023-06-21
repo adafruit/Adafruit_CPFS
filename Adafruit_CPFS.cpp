@@ -147,7 +147,7 @@ static void msc_flush_cb(void) {
 
 #endif // end !HAXPRESS
 
-FatVolume *Adafruit_CPFS::begin(int cs, void *spi, bool idle) {
+FatVolume *Adafruit_CPFS::begin(bool msc, int cs, void *spi, bool idle) {
 
   if (_started)
     return &_fatfs; // Don't re-init if already running
@@ -160,12 +160,15 @@ FatVolume *Adafruit_CPFS::begin(int cs, void *spi, bool idle) {
     if ((_transport = new Adafruit_FlashTransport_SPI(cs, (SPIClass *)spi))) {
       if ((_flash = (void *)new Adafruit_SPIFlash(_transport))) {
         ((Adafruit_SPIFlash *)_flash)->begin();
-        _usb_msc.setID("Adafruit", "External Flash", "1.0");
-        _usb_msc.setReadWriteCallback(msc_read_cb_spi, msc_write_cb_spi,
-                                      msc_flush_cb_spi);
-        _usb_msc.setCapacity(((Adafruit_SPIFlash *)_flash)->size() / 512, 512);
-        _usb_msc.setUnitReady(true);
-        _usb_msc.begin();
+        if (msc) {
+          _usb_msc.setID("Adafruit", "External Flash", "1.0");
+          _usb_msc.setReadWriteCallback(msc_read_cb_spi, msc_write_cb_spi,
+                                        msc_flush_cb_spi);
+          _usb_msc.setCapacity(((Adafruit_SPIFlash *)_flash)->size() / 512,
+                               512);
+          _usb_msc.setUnitReady(true);
+          _usb_msc.begin();
+        }
         if (_fatfs.begin((Adafruit_SPIFlash *)_flash))
           return &_fatfs;
       }    // end if new flash
@@ -174,13 +177,16 @@ FatVolume *Adafruit_CPFS::begin(int cs, void *spi, bool idle) {
     if ((_flash = (void *)new Adafruit_InternalFlash(INTERNAL_FLASH_FS_START,
                                                      INTERNAL_FLASH_FS_SIZE))) {
       ((Adafruit_InternalFlash *)_flash)->begin();
-      _usb_msc.setID("Adafruit", "Internal Flash", "1.0");
-      _usb_msc.setReadWriteCallback(msc_read_cb_internal, msc_write_cb_internal,
-                                    msc_flush_cb_internal);
-      _usb_msc.setCapacity(((Adafruit_InternalFlash *)_flash)->size() / 512,
-                           512);
-      _usb_msc.setUnitReady(true);
-      _usb_msc.begin();
+      if (msc) {
+        _usb_msc.setID("Adafruit", "Internal Flash", "1.0");
+        _usb_msc.setReadWriteCallback(msc_read_cb_internal,
+                                      msc_write_cb_internal,
+                                      msc_flush_cb_internal);
+        _usb_msc.setCapacity(((Adafruit_InternalFlash *)_flash)->size() / 512,
+                             512);
+        _usb_msc.setUnitReady(true);
+        _usb_msc.begin();
+      }
       if (_fatfs.begin((Adafruit_InternalFlash *)_flash))
         return &_fatfs;
     } // end if new flash
@@ -197,11 +203,13 @@ FatVolume *Adafruit_CPFS::begin(int cs, void *spi, bool idle) {
 #endif
 
       _flash->begin();
-      _usb_msc.setID("Adafruit", "Onboard Flash", "1.0");
-      _usb_msc.setReadWriteCallback(msc_read_cb, msc_write_cb, msc_flush_cb);
-      _usb_msc.setCapacity(_flash->size() / 512, 512);
-      _usb_msc.setUnitReady(true);
-      _usb_msc.begin();
+      if (msc) {
+        _usb_msc.setID("Adafruit", "Onboard Flash", "1.0");
+        _usb_msc.setReadWriteCallback(msc_read_cb, msc_write_cb, msc_flush_cb);
+        _usb_msc.setCapacity(_flash->size() / 512, 512);
+        _usb_msc.setUnitReady(true);
+        _usb_msc.begin();
+      }
 
       if (_fatfs.begin(_flash))
         return &_fatfs;
