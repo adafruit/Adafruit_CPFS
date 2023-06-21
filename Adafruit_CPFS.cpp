@@ -179,9 +179,8 @@ FatVolume *Adafruit_CPFS::begin(bool msc, int cs, void *spi, bool idle) {
       ((Adafruit_InternalFlash *)_flash)->begin();
       if (msc) {
         _usb_msc.setID("Adafruit", "Internal Flash", "1.0");
-        _usb_msc.setReadWriteCallback(msc_read_cb_internal,
-                                      msc_write_cb_internal,
-                                      msc_flush_cb_internal);
+        _usb_msc.setReadWriteCallback(
+            msc_read_cb_internal, msc_write_cb_internal, msc_flush_cb_internal);
         _usb_msc.setCapacity(((Adafruit_InternalFlash *)_flash)->size() / 512,
                              512);
         _usb_msc.setUnitReady(true);
