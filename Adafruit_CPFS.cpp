@@ -67,7 +67,7 @@ static Adafruit_FlashTransport_SPI _transport(EXTERNAL_FLASH_USE_CS,
 // passed (or not) to the begin() function.
 #define HAXPRESS
 static Adafruit_FlashTransport_SPI *_transport; // Unused if internal
-static void *_flash;                            // Is cast internal/SPI as needed in callbacks
+static void *_flash; // Is cast internal/SPI as needed in callbacks
 #endif
 #if !defined HAXPRESS
 static Adafruit_SPIFlash *_flash;
@@ -171,8 +171,8 @@ FatVolume *Adafruit_CPFS::begin(bool msc, int cs, void *spi, bool idle) {
         }
         if (_fatfs.begin((Adafruit_SPIFlash *)_flash))
           return &_fatfs;
-      }    // end if new flash
-    }      // end if new transport
+      } // end if new flash
+    } // end if new transport
   } else { // Internal flash
     if ((_flash = (void *)new Adafruit_InternalFlash(INTERNAL_FLASH_FS_START,
                                                      INTERNAL_FLASH_FS_SIZE))) {
@@ -213,7 +213,7 @@ FatVolume *Adafruit_CPFS::begin(bool msc, int cs, void *spi, bool idle) {
       if (_fatfs.begin(_flash))
         return &_fatfs;
     } // end if new flash
-  }   // end if new transport
+  } // end if new transport
 
 #endif // end HAXPRESS
 
