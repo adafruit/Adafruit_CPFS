@@ -34,7 +34,7 @@
 
 #if defined(USE_TINYUSB) || defined(ESP32)
 
-#include <SdFat.h>
+#include <SdFat_Adafruit_Fork.h>
 
 /*!
   @brief  Adafruit_CPFS is a minimal class to assist in using a board's
